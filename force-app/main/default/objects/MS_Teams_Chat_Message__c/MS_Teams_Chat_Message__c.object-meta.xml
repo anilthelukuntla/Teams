@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Stores permitted Microsoft Teams chat content and source identifiers for idempotent synchronization.</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <externalSharingModel>ControlledByParent</externalSharingModel>
+    <label>MS Teams Chat Message</label>
+    <nameField>
+        <displayFormat>TCM-{00000000}</displayFormat>
+        <label>Chat Message Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>MS Teams Chat Messages</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

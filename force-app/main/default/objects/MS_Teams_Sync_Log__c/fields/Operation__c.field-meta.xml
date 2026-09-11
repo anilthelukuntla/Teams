@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Operation__c</fullName>
+    <label>Operation</label>
+    <required>true</required>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Create Meeting</fullName>
+                <default>false</default>
+                <label>Create Meeting</label>
+            </value>
+            <value>
+                <fullName>Update Meeting</fullName>
+                <default>false</default>
+                <label>Update Meeting</label>
+            </value>
+            <value>
+                <fullName>Cancel Meeting</fullName>
+                <default>false</default>
+                <label>Cancel Meeting</label>
+            </value>
+            <value>
+                <fullName>Delete Meeting</fullName>
+                <default>false</default>
+                <label>Delete Meeting</label>
+            </value>
+            <value>
+                <fullName>Sync Meeting</fullName>
+                <default>false</default>
+                <label>Sync Meeting</label>
+            </value>
+            <value>
+                <fullName>Sync Attendance</fullName>
+                <default>false</default>
+                <label>Sync Attendance</label>
+            </value>
+            <value>
+                <fullName>Sync Artifacts</fullName>
+                <default>false</default>
+                <label>Sync Artifacts</label>
+            </value>
+            <value>
+                <fullName>Sync Chat</fullName>
+                <default>false</default>
+                <label>Sync Chat</label>
+            </value>
+            <value>
+                <fullName>Create Subscription</fullName>
+                <default>false</default>
+                <label>Create Subscription</label>
+            </value>
+            <value>
+                <fullName>Renew Subscription</fullName>
+                <default>false</default>
+                <label>Renew Subscription</label>
+            </value>
+            <value>
+                <fullName>Process Notification</fullName>
+                <default>false</default>
+                <label>Process Notification</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Schedule__c</fullName>
+    <label>Meeting Schedule</label>
+    <referenceTo>MS_Team_Call_Schedule__c</referenceTo>
+    <relationshipLabel>MS Teams Chat Messages</relationshipLabel>
+    <relationshipName>MS_Teams_Chat_Messages</relationshipName>
+    <relationshipOrder>0</relationshipOrder>
+    <reparentableMasterDetail>false</reparentableMasterDetail>
+    <type>MasterDetail</type>
+    <writeRequiresMasterRead>false</writeRequiresMasterRead>
+</CustomField>

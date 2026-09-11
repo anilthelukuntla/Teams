@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <deploymentStatus>Deployed</deploymentStatus>
+    <description>Associates a meeting with an authorized Salesforce record. Target IDs and object types must be validated by the application.</description>
+    <enableActivities>false</enableActivities>
+    <enableBulkApi>true</enableBulkApi>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>true</enableReports>
+    <enableSearch>true</enableSearch>
+    <externalSharingModel>ControlledByParent</externalSharingModel>
+    <label>MS Teams Record Link</label>
+    <nameField>
+        <displayFormat>TRL-{00000000}</displayFormat>
+        <label>Record Link Number</label>
+        <type>AutoNumber</type>
+    </nameField>
+    <pluralLabel>MS Teams Record Links</pluralLabel>
+    <sharingModel>ControlledByParent</sharingModel>
+</CustomObject>

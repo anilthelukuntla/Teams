@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>MSTeamsActionRequest</members>
+        <members>MSTeamsActionResult</members>
+        <members>MSTeamsArtifact</members>
+        <members>MSTeamsAttendanceInterval</members>
+        <members>MSTeamsAuthService</members>
+        <members>MSTeamsAvailabilityService</members>
+        <members>MSTeamsContextResult</members>
+        <members>MSTeamsGraphClient</members>
+        <members>MSTeamsMeetingController</members>
+        <members>MSTeamsMeetingDetails</members>
+        <members>MSTeamsMeetingRequest</members>
+        <members>MSTeamsMeetingSelector</members>
+        <members>MSTeamsMeetingService</members>
+        <members>MSTeamsMeetingSummary</members>
+        <members>MSTeamsParticipant</members>
+        <members>MSTeamsRecordLinkService</members>
+        <name>ApexClass</name>
+    </types>
+    <types>
+        <members>MS_Graph_Subscription__c</members>
+        <members>MS_Team_Attendance_Interval__c</members>
+        <members>MS_Team_Call_Schedule__c</members>
+        <members>MS_Team_Meeting_Artifact__c</members>
+        <members>MS_Team_Meeting_Participant__c</members>
+        <members>MS_Teams_Chat_Message__c</members>
+        <members>MS_Teams_Record_Link__c</members>
+        <members>MS_Teams_Sync_Log__c</members>
+        <name>CustomObject</name>
+    </types>
+    <version>64.0</version>
+</Package>
