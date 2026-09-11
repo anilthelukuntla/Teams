@@ -1,6 +1,12 @@
-# New MS Teams objects
+# MS Teams objects and UI fields
 
-Created locally using the MS_Teams_ object naming convention. The five existing objects are unchanged. Salesforce page/application logic, permission sets, and synchronization services are separate implementation work.
+Created locally using the MS_Teams_ object naming convention. Salesforce page/application logic, permission sets, and synchronization services are separate implementation work.
+
+## Screens 1–5 UI fields
+
+The meeting workspace UI adds these fields to `MS_Team_Call_Schedule__c`: `Meeting_Type__c`, `Allow_Meeting_Chat__c`, `Allow_Screen_Sharing__c`, `Lobby_Required__c`, `Meeting_Access__c`, `Teams_Channel_ID__c`, and `Location__c`. Chat and screen sharing default to enabled, lobby defaults to disabled, and meeting access defaults to invited people.
+
+`MS_Team_Meeting_Participant__c` adds `Salesforce_Record_ID__c` and `Salesforce_Object_API_Name__c` so an attendee selected from Salesforce can retain its source identity. These text fields provide polymorphic-style identity without creating lookups to each supported object.
 
 | Object | Custom fields | Relationship and purpose |
 | --- | --- | --- |

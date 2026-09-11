@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Meeting_Access__c</fullName>
+    <label>Meeting Access</label>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Invited People</fullName>
+                <default>true</default>
+                <label>Only invited people</label>
+            </value>
+            <value>
+                <fullName>Organization</fullName>
+                <default>false</default>
+                <label>People in my organization</label>
+            </value>
+            <value>
+                <fullName>Anyone</fullName>
+                <default>false</default>
+                <label>Anyone with the link</label>
+            </value>
+            <value>
+                <fullName>Organization and Trusted</fullName>
+                <default>false</default>
+                <label>My organization and trusted organizations</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
