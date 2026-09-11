@@ -245,6 +245,7 @@ public with sharing class MSTeamsMeetingService {
         );
         MS_Team_Call_Schedule__c schedule =
             getActiveSchedule(scheduleId, recordId);
+        String previousAttendeeEmails = schedule.Attendee_Emails__c;
 
         Map<String, Object> payload = new Map<String, Object>{
             'subject' => subject.trim(),
@@ -280,6 +281,11 @@ public with sharing class MSTeamsMeetingService {
         schedule.Last_Synchronized_At__c = System.now();
         schedule.Last_Graph_Error__c = null;
         Database.update(schedule, AccessLevel.SYSTEM_MODE);
+        MSTeamsMeetingSharingService.synchronizeAttendeeShares(
+            schedule.Id,
+            previousAttendeeEmails,
+            attendeeEmails
+        );
     }
 
     public static void cancelScheduledMeeting(
@@ -721,6 +727,12 @@ public with sharing class MSTeamsMeetingService {
                 result.eventId + '. ' + dmlException.getDmlMessage(0)
             );
         }
+
+        MSTeamsMeetingSharingService.synchronizeAttendeeShares(
+            schedule.Id,
+            null,
+            attendeeEmails
+        );
 
         return schedule.Id;
     }

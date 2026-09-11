@@ -76,6 +76,7 @@ public with sharing class MSTeamsMeetingController {
     public static MSTeamsActionResult createMeeting(
         MSTeamsMeetingRequest request
     ) {
+        requireMeetingCreateAccess();
         validateMeetingRequest(request, false);
         requireMicrosoftConnection();
         MSTeamsMeetingService.MeetingResult serviceResult =
@@ -98,6 +99,7 @@ public with sharing class MSTeamsMeetingController {
     public static MSTeamsActionResult updateMeeting(
         MSTeamsMeetingRequest request
     ) {
+        requireMeetingEditAccess();
         validateMeetingRequest(request, true);
         validateScheduleAccess(request.recordId, request.scheduleId);
         requireMicrosoftConnection();
@@ -120,6 +122,7 @@ public with sharing class MSTeamsMeetingController {
     public static MSTeamsActionResult cancelMeeting(
         MSTeamsActionRequest request
     ) {
+        requireMeetingEditAccess();
         validateActionRequest(request);
         requireMicrosoftConnection();
         MSTeamsMeetingService.cancelScheduledMeeting(
@@ -137,6 +140,7 @@ public with sharing class MSTeamsMeetingController {
     public static MSTeamsActionResult deleteMeeting(
         MSTeamsActionRequest request
     ) {
+        requireMeetingEditAccess();
         validateActionRequest(request);
         requireMicrosoftConnection();
         MSTeamsMeetingService.deleteScheduledMeeting(
@@ -229,6 +233,22 @@ public with sharing class MSTeamsMeetingController {
     private static void requireId(Id value, String parameterName) {
         if (value == null) {
             throw new AuraHandledException(parameterName + ' is required.');
+        }
+    }
+
+    private static void requireMeetingCreateAccess() {
+        if (!MS_Team_Call_Schedule__c.SObjectType.getDescribe().isCreateable()) {
+            throw new AuraHandledException(
+                'You do not have permission to schedule Microsoft Teams meetings.'
+            );
+        }
+    }
+
+    private static void requireMeetingEditAccess() {
+        if (!MS_Team_Call_Schedule__c.SObjectType.getDescribe().isUpdateable()) {
+            throw new AuraHandledException(
+                'You do not have permission to manage Microsoft Teams meetings.'
+            );
         }
     }
 
