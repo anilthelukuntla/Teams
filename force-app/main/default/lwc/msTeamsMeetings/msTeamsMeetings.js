@@ -57,6 +57,7 @@ export default class MsTeamsMeetings extends LightningElement {
     connectionPoll;
     showScheduleModal = false;
     selectedMeetingId;
+    selectedDetailsTab = 'overview';
 
     statusOptions = STATUS_OPTIONS;
     sortOptions = [
@@ -366,6 +367,7 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     handleDetails(event) {
+        this.selectedDetailsTab = 'overview';
         this.selectedMeetingId = event.currentTarget.dataset.id;
     }
 
@@ -383,6 +385,11 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     handleMeetingMenu(event) {
+        if (event.detail.value === 'participants') {
+            this.selectedDetailsTab = 'participants';
+            this.selectedMeetingId = event.currentTarget.dataset.id;
+            return;
+        }
         this.dispatchMeetingAction(event.detail.value, event.currentTarget.dataset.id);
     }
 
