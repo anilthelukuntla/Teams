@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title description">
+  <title id="title">Microsoft 365 per-user authentication flow</title>
+  <desc id="description">Flow from the Salesforce Teams component through Salesforce Named Credentials and Microsoft Entra, returning the connected user identity.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7fbff"/>
+      <stop offset="1" stop-color="#eef4ff"/>
+    </linearGradient>
+    <linearGradient id="primary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b74e5"/>
+      <stop offset="1" stop-color="#0754c8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#173867" flood-opacity="0.14"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3174d8"/>
+    </marker>
+    <style>
+      .title { font: 700 34px Arial, sans-serif; fill: #071a52; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #44618f; }
+      .lane { font: 700 18px Arial, sans-serif; fill: #173867; }
+      .step { font: 700 18px Arial, sans-serif; fill: #071a52; }
+      .copy { font: 400 15px Arial, sans-serif; fill: #415b84; }
+      .number { font: 700 16px Arial, sans-serif; fill: white; }
+      .small { font: 600 14px Arial, sans-serif; fill: #31517d; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="url(#background)"/>
+  <text x="80" y="72" class="title">Microsoft 365 Per-User Authentication</text>
+  <text x="80" y="105" class="subtitle">Each Salesforce user connects their own Microsoft account and schedules meetings as the organizer.</text>
+
+  <rect x="80" y="145" width="1440" height="82" rx="16" fill="#e8f1ff" stroke="#c7daf8"/>
+  <text x="110" y="177" class="lane">Salesforce Teams UI</text>
+  <text x="110" y="204" class="copy">Connection state, Connect Microsoft 365 action, and organizer identity</text>
+
+  <rect x="80" y="409" width="1440" height="82" rx="16" fill="#f0edff" stroke="#d7cffb"/>
+  <text x="110" y="441" class="lane">Salesforce Apex + Per-User External Credential</text>
+  <text x="110" y="468" class="copy">Generates the OAuth URL, securely stores user tokens, refreshes tokens, and authenticates Graph callouts</text>
+
+  <rect x="80" y="673" width="1440" height="82" rx="16" fill="#e9fbf4" stroke="#c3ecd9"/>
+  <text x="110" y="705" class="lane">Microsoft Entra + Microsoft Graph</text>
+  <text x="110" y="732" class="copy">Authenticates the Microsoft user, collects consent, and returns that user’s identity</text>
+
+  <g filter="url(#shadow)">
+    <rect x="115" y="262" width="250" height="112" rx="16" fill="white" stroke="#bed2f2"/>
+    <circle cx="145" cy="292" r="17" fill="url(#primary)"/><text x="140" y="298" class="number">1</text>
+    <text x="174" y="298" class="step">Check connection</text>
+    <text x="140" y="329" class="copy">Call GET /v1.0/me</text>
+    <text x="140" y="352" class="copy">when the component loads.</text>
+
+    <rect x="465" y="262" width="250" height="112" rx="16" fill="white" stroke="#bed2f2"/>
+    <circle cx="495" cy="292" r="17" fill="url(#primary)"/><text x="490" y="298" class="number">2</text>
+    <text x="524" y="298" class="step">Show disconnected UI</text>
+    <text x="490" y="329" class="copy">User selects</text>
+    <text x="490" y="352" class="copy">Connect Microsoft 365.</text>
+
+    <rect x="815" y="526" width="250" height="112" rx="16" fill="white" stroke="#cabff4"/>
+    <circle cx="845" cy="556" r="17" fill="#6554c0"/><text x="840" y="562" class="number">3</text>
+    <text x="874" y="562" class="step">Generate OAuth URL</text>
+    <text x="840" y="593" class="copy">Salesforce returns the URL</text>
+    <text x="840" y="616" class="copy">for the per-user credential.</text>
+
+    <rect x="1165" y="790" width="250" height="82" rx="16" fill="white" stroke="#a9dfc8"/>
+    <circle cx="1195" cy="820" r="17" fill="#168a5b"/><text x="1190" y="826" class="number">4</text>
+    <text x="1224" y="826" class="step">Sign in and consent</text>
+    <text x="1190" y="852" class="copy">Microsoft completes OAuth.</text>
+
+    <rect x="815" y="790" width="250" height="82" rx="16" fill="white" stroke="#a9dfc8"/>
+    <circle cx="845" cy="820" r="17" fill="#168a5b"/><text x="840" y="826" class="number">5</text>
+    <text x="874" y="826" class="step">OAuth callback</text>
+    <text x="840" y="852" class="copy">Tokens return to Salesforce.</text>
+
+    <rect x="465" y="526" width="250" height="112" rx="16" fill="white" stroke="#cabff4"/>
+    <circle cx="495" cy="556" r="17" fill="#6554c0"/><text x="490" y="562" class="number">6</text>
+    <text x="524" y="562" class="step">Store encrypted tokens</text>
+    <text x="490" y="593" class="copy">Salesforce stores a separate</text>
+    <text x="490" y="616" class="copy">credential for this user.</text>
+
+    <rect x="1165" y="262" width="250" height="112" rx="16" fill="white" stroke="#86cba9"/>
+    <circle cx="1195" cy="292" r="17" fill="#168a5b"/><text x="1190" y="298" class="number">7</text>
+    <text x="1224" y="298" class="step">Connected</text>
+    <text x="1190" y="329" class="copy">Display Microsoft name and</text>
+    <text x="1190" y="352" class="copy">enable Schedule Meeting.</text>
+  </g>
+
+  <path d="M365 318 H465" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M715 318 C770 318 770 582 815 582" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1065 582 C1130 582 1100 831 1165 831" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1165 831 H1065" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M815 831 C750 831 780 582 715 582" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M590 526 C590 445 1290 445 1290 374" fill="none" stroke="#3174d8" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="115" y="790" width="600" height="82" rx="16" fill="#fff8e8" stroke="#f2d38e"/>
+  <text x="140" y="822" class="small">After connection, all interactive calls use callout:MicrosoftGraph/v1.0/me/…</text>
+  <text x="140" y="849" class="copy">Microsoft Graph treats the connected user as the meeting organizer.</text>
+</svg>
