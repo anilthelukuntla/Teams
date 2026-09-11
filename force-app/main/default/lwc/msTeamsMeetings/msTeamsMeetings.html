@@ -213,4 +213,14 @@
             onscheduled={handleMeetingScheduled}>
         </c-ms-teams-meeting-form>
     </template>
+    <template lwc:if={selectedMeetingId}>
+        <c-ms-teams-meeting-details
+            record-id={recordId}
+            meeting-id={selectedMeetingId}
+            context={context}
+            onclose={handleDetailsClose}
+            onnavigate={handleDetailsNavigate}
+            onaction={handleDetailsAction}>
+        </c-ms-teams-meeting-details>
+    </template>
 </template>

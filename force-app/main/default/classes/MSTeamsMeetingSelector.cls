@@ -36,7 +36,9 @@ public with sharing class MSTeamsMeetingSelector {
                 Recording_Requested__c, Transcription_Requested__c,
                 Last_Synchronized_At__c, Last_Graph_Error__c,
                 Meeting_Started_At__c, Meeting_Ended_At__c,
-                Actual_Duration_Seconds__c
+                Actual_Duration_Seconds__c,
+                Location__c, Meeting_Access__c, Allow_Meeting_Chat__c,
+                Allow_Screen_Sharing__c, Lobby_Required__c
             FROM MS_Team_Call_Schedule__c
             WHERE Id = :scheduleId
             WITH USER_MODE
@@ -49,6 +51,28 @@ public with sharing class MSTeamsMeetingSelector {
         result.actualDurationSeconds = schedule.Actual_Duration_Seconds__c;
         result.participants = new List<MSTeamsParticipant>();
         result.artifacts = new List<MSTeamsArtifact>();
+        result.relatedRecords = new List<MSTeamsRelatedRecord>();
+        result.location = schedule.Location__c;
+        result.meetingAccess = schedule.Meeting_Access__c;
+        result.allowMeetingChat = schedule.Allow_Meeting_Chat__c;
+        result.allowScreenSharing = schedule.Allow_Screen_Sharing__c;
+        result.lobbyRequired = schedule.Lobby_Required__c;
+
+        for (MS_Teams_Record_Link__c row : [
+            SELECT Record_ID__c, Object_API_Name__c, Record_Label__c,
+                Relationship_Role__c
+            FROM MS_Teams_Record_Link__c
+            WHERE Meeting_Schedule__c = :scheduleId
+            WITH USER_MODE
+            ORDER BY Relationship_Role__c, Record_Label__c
+        ]) {
+            MSTeamsRelatedRecord related = new MSTeamsRelatedRecord();
+            related.recordId = row.Record_ID__c;
+            related.objectApiName = row.Object_API_Name__c;
+            related.recordLabel = row.Record_Label__c;
+            related.relationshipRole = row.Relationship_Role__c;
+            result.relatedRecords.add(related);
+        }
 
         Map<Id, MSTeamsParticipant> participantsById =
             new Map<Id, MSTeamsParticipant>();
