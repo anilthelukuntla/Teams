@@ -385,8 +385,8 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     handleMeetingMenu(event) {
-        if (event.detail.value === 'participants') {
-            this.selectedDetailsTab = 'participants';
+        if (event.detail.value === 'participants' || event.detail.value === 'recording') {
+            this.selectedDetailsTab = event.detail.value;
             this.selectedMeetingId = event.currentTarget.dataset.id;
             return;
         }

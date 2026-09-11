@@ -42,6 +42,37 @@ public with sharing class MSTeamsMeetingController {
     }
 
     @AuraEnabled
+    public static String getTranscriptContent(Id recordId, Id scheduleId) {
+        MSTeamsRecordLinkService.assertMeetingLinked(recordId, scheduleId);
+        requireMicrosoftConnection();
+        List<MS_Team_Meeting_Artifact__c> artifacts = [
+            SELECT Content_URL__c, Processing_Status__c
+            FROM MS_Team_Meeting_Artifact__c
+            WHERE Meeting_Schedule__c = :scheduleId
+                AND Artifact_Type__c = 'Transcript'
+            WITH USER_MODE
+            ORDER BY Created_At__c DESC
+            LIMIT 1
+        ];
+        if (artifacts.isEmpty() || String.isBlank(artifacts[0].Content_URL__c)) {
+            throw new AuraHandledException('The transcript is not available yet.');
+        }
+        String contentPath = artifacts[0].Content_URL__c.trim();
+        contentPath = contentPath.replaceFirst('^https://graph.microsoft.com/v1\\.0', '');
+        contentPath = contentPath.replaceFirst('^/v1\\.0', '');
+        HttpResponse response;
+        try {
+            response = MSTeamsGraphClient.get(contentPath);
+        } catch (Exception exceptionValue) {
+            throw new AuraHandledException('Microsoft Graph could not retrieve the transcript: ' + exceptionValue.getMessage());
+        }
+        if (response.getStatusCode() != 200) {
+            throw new AuraHandledException('Microsoft Graph could not retrieve the transcript. HTTP ' + response.getStatusCode() + '.');
+        }
+        return response.getBody();
+    }
+
+    @AuraEnabled
     public static MSTeamsActionResult createMeeting(
         MSTeamsMeetingRequest request
     ) {
