@@ -1,0 +1,88 @@
+<template>
+    <section role="dialog" tabindex="-1" aria-modal="true" aria-label={modalTitle} class="wizard-modal">
+        <div class="wizard-container">
+            <header class="wizard-header">
+                <div class="brand"><img src={teamsLogoUrl} alt="Microsoft Teams"/><div><h1>{modalTitle}</h1><p>Create a Teams meeting connected to your Salesforce records</p></div></div>
+                <button class="icon-button" onclick={close} aria-label="Close">×</button>
+            </header>
+
+            <template lwc:if={isSuccess}>
+                <div class="success-view">
+                    <span class="success-icon">✓</span>
+                    <h2>Your Teams meeting is scheduled!</h2>
+                    <p>Calendar invitations were sent and the meeting was linked to {recordName}.</p>
+                    <div class="success-card"><img src={teamsLogoUrl} alt=""/><div><strong>{form.subject}</strong><span>{dateTimeSummary}</span><span>{selectedCount} attendees · Organizer: You</span></div></div>
+                    <div class="success-actions"><lightning-button label="Back to Record" onclick={close}></lightning-button><lightning-button label="Schedule Another" onclick={scheduleAnother}></lightning-button><lightning-button label="Join Teams" variant="brand" icon-name="utility:video" onclick={joinMeeting}></lightning-button></div>
+                </div>
+            </template>
+
+            <template lwc:else>
+                <nav class="stepper" aria-label="Schedule meeting progress">
+                    <div class={step1Class}><span>1</span><small>Meeting Details</small></div>
+                    <div class={step2Class}><span>2</span><small>Attendees</small></div>
+                    <div class={step3Class}><span>3</span><small>Teams Options</small></div>
+                    <div class={step4Class}><span>4</span><small>Review &amp; Schedule</small></div>
+                </nav>
+                <main class="wizard-body">
+                    <template lwc:if={isStep1}>
+                        <div class="section-title"><span>1</span><div><h2>Meeting Details</h2><p>Set up the basic information for your meeting</p></div></div>
+                        <div class="two-col">
+                            <lightning-input data-required="true" data-field="subject" label="Meeting title" required value={form.subject} onchange={handleField}></lightning-input>
+                            <lightning-combobox data-field="meetingType" label="Meeting type" value={form.meetingType} options={meetingTypeOptions} onchange={handleField}></lightning-combobox>
+                        </div>
+                        <lightning-textarea data-field="description" label="Description / Agenda" value={form.description} maxlength="500" onchange={handleField}></lightning-textarea>
+                        <div class="section-divider"></div>
+                        <div class="section-title compact"><span><lightning-icon icon-name="utility:event" size="x-small"></lightning-icon></span><div><h2>Date &amp; Time</h2><p>Choose the date, time and duration</p></div></div>
+                        <div class="date-grid">
+                            <lightning-input data-required="true" data-field="date" type="date" label="Date" required value={form.date} onchange={handleField}></lightning-input>
+                            <lightning-input data-required="true" data-field="startTime" type="time" label="Start time" required value={form.startTime} onchange={handleField}></lightning-input>
+                            <lightning-combobox data-field="duration" label="Duration" value={form.duration} options={durationOptions} onchange={handleField}></lightning-combobox>
+                            <lightning-combobox data-field="microsoftTimeZone" label="Time zone" value={form.microsoftTimeZone} options={timeZoneOptions} onchange={handleField}></lightning-combobox>
+                        </div>
+                        <div class="options-row"><lightning-combobox data-field="reminderMinutesBeforeStart" label="Add reminder" value={form.reminderMinutesBeforeStart} options={reminderOptions} onchange={handleField}></lightning-combobox><lightning-input data-field="allowNewTimeProposals" type="toggle" label="Allow attendees to propose a new time" checked={form.allowNewTimeProposals} onchange={handleToggle}></lightning-input></div>
+                        <div class="related-card"><lightning-icon icon-name="standard:record" size="small"></lightning-icon><div><small>{objectLabel}</small><strong>{recordName}</strong></div><span>Automatically linked</span></div>
+                    </template>
+
+                    <template lwc:if={isStep2}>
+                        <div class="section-title"><span>2</span><div><h2>Add Attendees</h2><p>Invite people from Salesforce or enter email addresses</p></div></div>
+                        <div class="attendee-tabs"><button class={sfTabClass} data-tab="salesforce" onclick={chooseTab}>Add from Salesforce</button><button class={emailTabClass} data-tab="email" onclick={chooseTab}>Add by Email</button><button class={suggestedTabClass} data-tab="suggested" onclick={chooseTab}>Suggested Attendees</button></div>
+                        <template lwc:if={attendeeTab}>
+                            <template lwc:if={hasSearchResults}>
+                                <div class="search-results"><template for:each={searchResults} for:item="person"><button key={person.key} data-id={person.key} onclick={addSearchResult}><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.title} · {person.email}</small></span><b>＋ Add</b></button></template></div>
+                            </template>
+                        </template>
+                        <template lwc:if={isStep2}>
+                            <div class="attendee-entry">
+                                <lightning-input type="search" label="Search contacts, leads and users" placeholder="Type at least 2 characters…" onchange={handleSearch}></lightning-input>
+                                <div class="email-add"><lightning-input data-id="manual-email" type="email" label="Or add an email address"></lightning-input><lightning-button label="Add" onclick={addEmail}></lightning-button></div>
+                            </div>
+                        </template>
+                        <h3 class="selected-heading">Selected Attendees ({selectedCount})</h3>
+                        <div class="selected-list"><template for:each={selectedAttendees} for:item="person"><div key={person.key} class="selected-person"><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.email}</small></span><button data-id={person.key} onclick={removeAttendee} aria-label="Remove attendee">×</button></div></template></div>
+                        <lightning-input type="checkbox" label="Send calendar invite to all attendees" checked disabled></lightning-input>
+                        <lightning-textarea data-field="personalMessage" label="Add a personal message (optional)" value={form.personalMessage} maxlength="500" onchange={handleField}></lightning-textarea>
+                    </template>
+
+                    <template lwc:if={isStep3}>
+                        <div class="section-title"><span>3</span><div><h2>Teams Options</h2><p>Configure meeting options, recording and access</p></div></div>
+                        <section class="option-card"><h3><lightning-icon icon-name="utility:video" size="small"></lightning-icon> Meeting Options</h3><lightning-input data-field="allowMeetingChat" type="toggle" label="Enable meeting chat" checked={form.allowMeetingChat} onchange={handleToggle}></lightning-input><lightning-input data-field="allowScreenSharing" type="toggle" label="Allow screen sharing" checked={form.allowScreenSharing} onchange={handleToggle}></lightning-input><lightning-input data-field="lobbyRequired" type="toggle" label="Require lobby for external attendees" checked={form.lobbyRequired} onchange={handleToggle}></lightning-input></section>
+                        <section class="option-card"><h3><lightning-icon icon-name="utility:record" size="small"></lightning-icon> Recording &amp; Transcript</h3><lightning-input data-field="recordAutomatically" type="checkbox" label="Automatically record the meeting" checked={form.recordAutomatically} onchange={handleToggle}></lightning-input><lightning-input data-field="enableTranscription" type="checkbox" label="Generate transcript (AI-powered)" checked={form.enableTranscription} onchange={handleToggle}></lightning-input><div class="ai-note">✦ AI can use the transcript for summaries, action items and key insights when those improvements are enabled.</div></section>
+                        <section class="option-card"><h3><lightning-icon icon-name="utility:lock" size="small"></lightning-icon> Meeting Access</h3><lightning-radio-group data-field="meetingAccess" label="Who can bypass the lobby?" options={accessOptions} value={form.meetingAccess} type="radio" onchange={handleField}></lightning-radio-group></section>
+                        <section class="option-card"><h3>Additional Settings</h3><div class="two-col"><lightning-input data-field="teamsChannelId" label="Teams channel (optional)" placeholder="Channel ID" value={form.teamsChannelId} onchange={handleField}></lightning-input><lightning-input data-field="location" label="Location (optional)" placeholder="Microsoft Teams Meeting (Online)" value={form.location} onchange={handleField}></lightning-input></div></section>
+                    </template>
+
+                    <template lwc:if={isStep4}>
+                        <div class="section-title"><span>4</span><div><h2>Review &amp; Schedule</h2><p>Review your meeting details and confirm</p></div></div>
+                        <section class="review-card"><h3>Meeting Details</h3><dl><dt>Title</dt><dd>{form.subject}</dd><dt>Date &amp; time</dt><dd>{dateTimeSummary}</dd><dt>Time zone</dt><dd>{form.microsoftTimeZone}</dd><dt>Meeting type</dt><dd>{form.meetingType}</dd><dt>Description</dt><dd>{form.description}</dd><dt>Related record</dt><dd>{recordName} ({objectLabel})</dd></dl></section>
+                        <div class="review-grid"><section class="review-card"><h3>Attendees ({selectedCount})</h3><template for:each={selectedAttendees} for:item="person"><div key={person.key} class="review-person"><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.email}</small></span></div></template></section><section class="review-card"><h3>Teams Options</h3><p>✓ Meeting chat configured</p><p>✓ Screen sharing configured</p><p>✓ Recording preference saved</p><p>✓ Transcript preference saved</p><p>✓ Access: {form.meetingAccess}</p></section></div>
+                        <div class="info-note">ⓘ A calendar invite will be sent to all attendees, and the meeting will be created in Microsoft Teams and synced to Salesforce.</div>
+                    </template>
+                    <template lwc:if={errorMessage}><div class="error-message" role="alert">{errorMessage}</div></template>
+                </main>
+                <footer class="wizard-footer"><div><lightning-button label="Cancel" onclick={close}></lightning-button><template lwc:if={showBack}><lightning-button label="Back" onclick={back}></lightning-button></template></div><template lwc:if={isStep4}><lightning-button label="Schedule Meeting" icon-name="utility:event" variant="brand" onclick={schedule} disabled={saving}></lightning-button></template><template lwc:else><lightning-button label={nextLabel} icon-name="utility:forward" icon-position="right" variant="brand" onclick={next}></lightning-button></template></footer>
+            </template>
+            <template lwc:if={saving}><div class="saving"><lightning-spinner alternative-text="Scheduling meeting"></lightning-spinner></div></template>
+        </div>
+    </section>
+    <div class="backdrop"></div>
+</template>

@@ -9,4 +9,13 @@ public class MSTeamsMeetingRequest {
     @AuraEnabled public String microsoftTimeZone { get; set; }
     @AuraEnabled public Boolean recordAutomatically { get; set; }
     @AuraEnabled public Boolean enableTranscription { get; set; }
+    @AuraEnabled public String meetingType { get; set; }
+    @AuraEnabled public Boolean allowMeetingChat { get; set; }
+    @AuraEnabled public Boolean allowScreenSharing { get; set; }
+    @AuraEnabled public Boolean lobbyRequired { get; set; }
+    @AuraEnabled public String meetingAccess { get; set; }
+    @AuraEnabled public String teamsChannelId { get; set; }
+    @AuraEnabled public String location { get; set; }
+    @AuraEnabled public Integer reminderMinutesBeforeStart { get; set; }
+    @AuraEnabled public Boolean allowNewTimeProposals { get; set; }
 }

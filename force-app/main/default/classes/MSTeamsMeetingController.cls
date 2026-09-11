@@ -23,6 +23,15 @@ public with sharing class MSTeamsMeetingController {
     }
 
     @AuraEnabled(cacheable=true)
+    public static List<MSTeamsAttendeeOption> searchAttendees(
+        Id recordId,
+        String searchTerm
+    ) {
+        MSTeamsRecordLinkService.validateRecordAccess(recordId);
+        return MSTeamsAttendeeSearchService.search(searchTerm);
+    }
+
+    @AuraEnabled(cacheable=true)
     public static MSTeamsMeetingDetails getMeetingDetails(
         Id recordId,
         Id scheduleId
@@ -40,15 +49,8 @@ public with sharing class MSTeamsMeetingController {
         requireMicrosoftConnection();
         MSTeamsMeetingService.MeetingResult serviceResult =
             MSTeamsMeetingService.createMeetingForRecord(
-                request.subject,
+                request,
                 descriptionToHtml(request.description),
-                request.attendeeEmails,
-                request.startDateTime,
-                request.endDateTime,
-                request.microsoftTimeZone,
-                request.recordAutomatically == true,
-                request.enableTranscription == true,
-                request.recordId,
                 MSTeamsRecordLinkService.getContext(request.recordId).recordName
             );
         MSTeamsActionResult result = MSTeamsActionResult.succeeded(

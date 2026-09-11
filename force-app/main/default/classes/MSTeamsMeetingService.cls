@@ -33,36 +33,31 @@ public with sharing class MSTeamsMeetingService {
             microsoftTimeZone,
             createTeamsMeeting,
             false,
-            false
+            false,
+            null
         );
     }
 
     public static MeetingResult createMeetingForRecord(
-        String subject,
+        MSTeamsMeetingRequest meetingRequest,
         String bodyHtml,
-        List<String> attendeeEmails,
-        String startDateTimeValue,
-        String endDateTimeValue,
-        String microsoftTimeZone,
-        Boolean recordAutomatically,
-        Boolean enableTranscription,
-        Id recordId,
         String recordLabel
     ) {
         MeetingResult result = createMeetingWithContext(
-            subject,
+            meetingRequest.subject,
             bodyHtml,
-            attendeeEmails,
-            startDateTimeValue,
-            endDateTimeValue,
-            microsoftTimeZone,
+            meetingRequest.attendeeEmails,
+            meetingRequest.startDateTime,
+            meetingRequest.endDateTime,
+            meetingRequest.microsoftTimeZone,
             true,
-            recordAutomatically == true,
-            enableTranscription == true
+            meetingRequest.recordAutomatically == true,
+            meetingRequest.enableTranscription == true,
+            meetingRequest
         );
         try {
             MSTeamsRecordLinkService.createPrimaryLink(
-                recordId,
+                meetingRequest.recordId,
                 result.scheduleId,
                 recordLabel
             );
@@ -79,12 +74,12 @@ public with sharing class MSTeamsMeetingService {
     private static void applyRequestedMeetingOptions(
         MeetingResult result,
         Boolean recordAutomatically,
-        Boolean enableTranscription
+        Boolean enableTranscription,
+        MSTeamsMeetingRequest meetingRequest
     ) {
         if (
             result == null ||
-            String.isBlank(result.onlineMeetingId) ||
-            (!recordAutomatically && !enableTranscription)
+            String.isBlank(result.onlineMeetingId)
         ) {
             return;
         }
@@ -95,6 +90,29 @@ public with sharing class MSTeamsMeetingService {
         }
         if (enableTranscription) {
             payload.put('allowTranscription', true);
+        }
+        if (meetingRequest != null) {
+            payload.put(
+                'allowMeetingChat',
+                meetingRequest.allowMeetingChat == false
+                    ? 'disabled'
+                    : 'enabled'
+            );
+            payload.put(
+                'allowedPresenters',
+                meetingRequest.allowScreenSharing == false
+                    ? 'organizer'
+                    : 'everyone'
+            );
+            payload.put(
+                'lobbyBypassSettings',
+                new Map<String, Object>{
+                    'scope' => lobbyBypassScope(meetingRequest)
+                }
+            );
+        }
+        if (payload.isEmpty()) {
+            return;
         }
         try {
             HttpResponse response = MSTeamsGraphClient.patch(
@@ -127,7 +145,8 @@ public with sharing class MSTeamsMeetingService {
         String microsoftTimeZone,
         Boolean createTeamsMeeting,
         Boolean recordAutomatically,
-        Boolean enableTranscription
+        Boolean enableTranscription,
+        MSTeamsMeetingRequest meetingRequest
     ) {
         validateRequest(
             subject,
@@ -158,7 +177,8 @@ public with sharing class MSTeamsMeetingService {
                 endDateTimeValue,
                 microsoftTimeZone,
                 createTeamsMeeting == true,
-                graphTransactionId
+                graphTransactionId,
+                meetingRequest
             )
         );
 
@@ -186,7 +206,8 @@ public with sharing class MSTeamsMeetingService {
             applyRequestedMeetingOptions(
                 result,
                 recordAutomatically == true,
-                enableTranscription == true
+                enableTranscription == true,
+                meetingRequest
             );
         }
         result.scheduleId = saveMeetingSchedule(
@@ -199,7 +220,8 @@ public with sharing class MSTeamsMeetingService {
             createTeamsMeeting == true,
             result,
             recordAutomatically == true,
-            enableTranscription == true
+            enableTranscription == true,
+            meetingRequest
         );
 
         return result;
@@ -417,7 +439,8 @@ public with sharing class MSTeamsMeetingService {
         String endDateTimeValue,
         String microsoftTimeZone,
         Boolean createTeamsMeeting,
-        String graphTransactionId
+        String graphTransactionId,
+        MSTeamsMeetingRequest meetingRequest
     ) {
         Map<String, Object> eventPayload = new Map<String, Object>{
             'subject' => subject.trim(),
@@ -436,10 +459,26 @@ public with sharing class MSTeamsMeetingService {
                 'timeZone' => microsoftTimeZone.trim()
             },
             'attendees' => buildAttendees(attendeeEmails),
-            'allowNewTimeProposals' => true,
+            'allowNewTimeProposals' => meetingRequest == null ||
+                meetingRequest.allowNewTimeProposals != false,
             'responseRequested' => true,
             'transactionId' => graphTransactionId
         };
+
+        if (meetingRequest != null) {
+            Integer reminderMinutes = meetingRequest.reminderMinutesBeforeStart;
+            if (reminderMinutes != null && reminderMinutes >= 0) {
+                eventPayload.put('isReminderOn', true);
+                eventPayload.put('reminderMinutesBeforeStart', reminderMinutes);
+            } else {
+                eventPayload.put('isReminderOn', false);
+            }
+            if (String.isNotBlank(meetingRequest.location)) {
+                eventPayload.put('location', new Map<String, Object>{
+                    'displayName' => meetingRequest.location.trim()
+                });
+            }
+        }
 
         if (createTeamsMeeting) {
             eventPayload.put('isOnlineMeeting', true);
@@ -538,6 +577,24 @@ public with sharing class MSTeamsMeetingService {
             value.substring(20);
     }
 
+    private static String lobbyBypassScope(
+        MSTeamsMeetingRequest meetingRequest
+    ) {
+        if (meetingRequest.lobbyRequired == true) {
+            return 'organizer';
+        }
+        if (meetingRequest.meetingAccess == 'Anyone') {
+            return 'everyone';
+        }
+        if (meetingRequest.meetingAccess == 'Organization') {
+            return 'organization';
+        }
+        if (meetingRequest.meetingAccess == 'Organization and Trusted') {
+            return 'organizationExcludingGuests';
+        }
+        return 'invited';
+    }
+
     private static List<Object> buildAttendees(
         List<String> attendeeEmails
     ) {
@@ -598,7 +655,8 @@ public with sharing class MSTeamsMeetingService {
         Boolean createTeamsMeeting,
         MeetingResult result,
         Boolean recordAutomatically,
-        Boolean enableTranscription
+        Boolean enableTranscription,
+        MSTeamsMeetingRequest meetingRequest
     ) {
         MS_Team_Call_Schedule__c schedule =
             new MS_Team_Call_Schedule__c(
@@ -614,6 +672,29 @@ public with sharing class MSTeamsMeetingService {
                 Teams_Meeting_Requested__c = createTeamsMeeting,
                 Recording_Requested__c = recordAutomatically,
                 Transcription_Requested__c = enableTranscription,
+                Meeting_Type__c = meetingRequest == null
+                    ? null
+                    : meetingRequest.meetingType,
+                Allow_Meeting_Chat__c = meetingRequest == null ||
+                    meetingRequest.allowMeetingChat != false,
+                Allow_Screen_Sharing__c = meetingRequest == null ||
+                    meetingRequest.allowScreenSharing != false,
+                Lobby_Required__c = meetingRequest != null &&
+                    meetingRequest.lobbyRequired == true,
+                Meeting_Access__c = meetingRequest == null
+                    ? 'Invited People'
+                    : meetingRequest.meetingAccess,
+                Teams_Channel_ID__c = meetingRequest == null
+                    ? null
+                    : meetingRequest.teamsChannelId,
+                Location__c = meetingRequest == null
+                    ? null
+                    : meetingRequest.location,
+                Reminder_Minutes_Before_Start__c = meetingRequest == null
+                    ? 15
+                    : meetingRequest.reminderMinutesBeforeStart,
+                Allow_New_Time_Proposals__c = meetingRequest == null ||
+                    meetingRequest.allowNewTimeProposals != false,
                 Is_Online_Meeting__c = result.isOnlineMeeting,
                 Graph_Event_ID__c = result.eventId,
                 Graph_Transaction_ID__c = result.transactionId,
