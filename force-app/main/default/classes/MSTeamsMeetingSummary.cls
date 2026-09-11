@@ -1,6 +1,8 @@
 public class MSTeamsMeetingSummary {
     @AuraEnabled public Id id { get; set; }
     @AuraEnabled public String subject { get; set; }
+    @AuraEnabled public String description { get; set; }
+    @AuraEnabled public String meetingType { get; set; }
     @AuraEnabled public String status { get; set; }
     @AuraEnabled public String attendeeEmails { get; set; }
     @AuraEnabled public String startDateTime { get; set; }

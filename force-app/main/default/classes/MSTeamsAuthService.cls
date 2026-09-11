@@ -1,8 +1,42 @@
 public with sharing class MSTeamsAuthService {
 
     private static final String NAMED_CREDENTIAL = 'MicrosoftGraph';
-    private static final String GRAPH_API_VERSION = 'v2.0';
+    private static final String EXTERNAL_CREDENTIAL = 'MicrosoftGraph';
+    private static final String GRAPH_API_VERSION = 'v1.0';
     private static final Integer CALLOUT_TIMEOUT = 120000;
+
+    /**
+     * Returns the Salesforce-managed OAuth URL for the current user's
+     * Microsoft Graph credential. Salesforce handles the callback and stores
+     * the resulting access and refresh tokens in User External Credentials.
+     */
+    public static String getDelegatedAuthorizationUrl() {
+        try {
+            ConnectApi.OAuthCredentialAuthUrlInput input =
+                new ConnectApi.OAuthCredentialAuthUrlInput();
+            input.externalCredential = EXTERNAL_CREDENTIAL;
+
+            ConnectApi.OAuthCredentialAuthUrl result =
+                ConnectApi.NamedCredentials.getOAuthCredentialAuthUrl(input);
+            if (
+                result == null ||
+                String.isBlank(result.authenticationUrl)
+            ) {
+                throw new MSTeamsAuthException(
+                    'Salesforce did not return a Microsoft authorization URL.'
+                );
+            }
+            return result.authenticationUrl;
+        } catch (MSTeamsAuthException authException) {
+            throw new AuraHandledException(authException.getMessage());
+        } catch (Exception unexpectedException) {
+            throw new AuraHandledException(
+                'Unable to start Microsoft 365 authentication. Verify that ' +
+                'the MicrosoftGraph per-user External Credential is ' +
+                'configured and assigned to this user.'
+            );
+        }
+    }
 
     /**
      * Validates delegated authentication.

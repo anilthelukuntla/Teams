@@ -6,7 +6,8 @@ public with sharing class MSTeamsMeetingSelector {
             return results;
         }
         for (MS_Team_Call_Schedule__c row : [
-            SELECT Id, Subject__c, Status__c, Attendee_Emails__c,
+            SELECT Id, Subject__c, Body_HTML__c, Meeting_Type__c,
+                Status__c, Attendee_Emails__c,
                 Start_Date_Time__c, End_Date_Time__c, Microsoft_Time_Zone__c,
                 Organizer_Email__c, Web_Link__c, Teams_Join_URL__c,
                 Recording_Requested__c, Transcription_Requested__c,
@@ -28,7 +29,8 @@ public with sharing class MSTeamsMeetingSelector {
     ) {
         MSTeamsRecordLinkService.assertMeetingLinked(recordId, scheduleId);
         MS_Team_Call_Schedule__c schedule = [
-            SELECT Id, Subject__c, Status__c, Attendee_Emails__c,
+            SELECT Id, Subject__c, Body_HTML__c, Meeting_Type__c,
+                Status__c, Attendee_Emails__c,
                 Start_Date_Time__c, End_Date_Time__c, Microsoft_Time_Zone__c,
                 Organizer_Email__c, Web_Link__c, Teams_Join_URL__c,
                 Recording_Requested__c, Transcription_Requested__c,
@@ -121,6 +123,8 @@ public with sharing class MSTeamsMeetingSelector {
         MSTeamsMeetingSummary result = new MSTeamsMeetingSummary();
         result.id = row.Id;
         result.subject = row.Subject__c;
+        result.description = row.Body_HTML__c;
+        result.meetingType = row.Meeting_Type__c;
         result.status = row.Status__c;
         result.attendeeEmails = row.Attendee_Emails__c;
         result.startDateTime = row.Start_Date_Time__c;

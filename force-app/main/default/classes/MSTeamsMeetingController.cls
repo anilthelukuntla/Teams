@@ -1,4 +1,16 @@
 public with sharing class MSTeamsMeetingController {
+    @AuraEnabled
+    public static MSTeamsConnectionResult getMicrosoftConnectionStatus() {
+        return toConnectionResult(
+            MSTeamsAuthService.validateDelegatedAuthentication()
+        );
+    }
+
+    @AuraEnabled
+    public static String getMicrosoftAuthorizationUrl() {
+        return MSTeamsAuthService.getDelegatedAuthorizationUrl();
+    }
+
     @AuraEnabled(cacheable=true)
     public static MSTeamsContextResult getContext(Id recordId) {
         return MSTeamsRecordLinkService.getContext(recordId);
@@ -25,6 +37,7 @@ public with sharing class MSTeamsMeetingController {
         MSTeamsMeetingRequest request
     ) {
         validateMeetingRequest(request, false);
+        requireMicrosoftConnection();
         MSTeamsMeetingService.MeetingResult serviceResult =
             MSTeamsMeetingService.createMeetingForRecord(
                 request.subject,
@@ -54,6 +67,7 @@ public with sharing class MSTeamsMeetingController {
     ) {
         validateMeetingRequest(request, true);
         validateScheduleAccess(request.recordId, request.scheduleId);
+        requireMicrosoftConnection();
         MSTeamsMeetingService.updateScheduledMeeting(
             request.scheduleId,
             request.recordId,
@@ -74,6 +88,7 @@ public with sharing class MSTeamsMeetingController {
         MSTeamsActionRequest request
     ) {
         validateActionRequest(request);
+        requireMicrosoftConnection();
         MSTeamsMeetingService.cancelScheduledMeeting(
             request.scheduleId,
             request.recordId,
@@ -90,6 +105,7 @@ public with sharing class MSTeamsMeetingController {
         MSTeamsActionRequest request
     ) {
         validateActionRequest(request);
+        requireMicrosoftConnection();
         MSTeamsMeetingService.deleteScheduledMeeting(
             request.scheduleId,
             request.recordId,
@@ -143,6 +159,38 @@ public with sharing class MSTeamsMeetingController {
 
     private static void validateScheduleAccess(Id recordId, Id scheduleId) {
         MSTeamsRecordLinkService.assertMeetingLinked(recordId, scheduleId);
+    }
+
+    private static MSTeamsAuthService.AuthenticationResult
+        requireMicrosoftConnection() {
+        MSTeamsAuthService.AuthenticationResult authResult =
+            MSTeamsAuthService.validateDelegatedAuthentication();
+        if (authResult.authenticated != true) {
+            String detail = String.isBlank(authResult.message)
+                ? 'Connect your Microsoft 365 account before continuing.'
+                : authResult.message;
+            throw new AuraHandledException(
+                'Microsoft 365 connection required. ' + detail
+            );
+        }
+        return authResult;
+    }
+
+    private static MSTeamsConnectionResult toConnectionResult(
+        MSTeamsAuthService.AuthenticationResult authResult
+    ) {
+        MSTeamsConnectionResult result = new MSTeamsConnectionResult();
+        result.connected = authResult.authenticated == true;
+        result.statusCode = authResult.statusCode;
+        result.status = result.connected ? 'Connected' : 'Disconnected';
+        result.message = authResult.message;
+        result.microsoftUserId = authResult.microsoftUserId;
+        result.displayName = authResult.displayName;
+        result.userPrincipalName = authResult.userPrincipalName;
+        result.email = String.isBlank(authResult.email)
+            ? authResult.userPrincipalName
+            : authResult.email;
+        return result;
     }
 
     private static void requireId(Id value, String parameterName) {
