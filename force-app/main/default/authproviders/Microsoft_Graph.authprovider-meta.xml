@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AuthProvider xmlns="http://soap.sforce.com/2006/04/metadata">
+    <authorizeUrl>https://login.microsoftonline.us/705b089f-3bbc-4596-b7cf-6429c6fe1dab/oauth2/v2.0/authorize</authorizeUrl>
+    <consumerKey>672c9a6b-d8d4-426c-bb2c-b011881765d7</consumerKey>
+    <consumerSecret>Placeholder_Value</consumerSecret>
+    <defaultScopes>openid profile email offline_access https://graph.microsoft.us/User.Read https://graph.microsoft.us/User.ReadBasic.All https://graph.microsoft.us/Calendars.Read https://graph.microsoft.us/Calendars.Read.Shared</defaultScopes>
+    <friendlyName>Microsoft Graph</friendlyName>
+    <idTokenIssuer>https://login.microsoftonline.us/705b089f-3bbc-4596-b7cf-6429c6fe1dab/v2.0</idTokenIssuer>
+    <includeOrgIdInIdentifier>false</includeOrgIdInIdentifier>
+    <isPkceEnabled>true</isPkceEnabled>
+    <providerType>OpenIdConnect</providerType>
+    <requireMfa>false</requireMfa>
+    <sendAccessTokenInHeader>true</sendAccessTokenInHeader>
+    <sendClientCredentialsInHeader>false</sendClientCredentialsInHeader>
+    <sendSecretInApis>true</sendSecretInApis>
+    <tokenUrl>https://login.microsoftonline.us/705b089f-3bbc-4596-b7cf-6429c6fe1dab/oauth2/v2.0/token</tokenUrl>
+    <userInfoUrl>https://graph.microsoft.us/oidc/userinfo</userInfoUrl>
+</AuthProvider>

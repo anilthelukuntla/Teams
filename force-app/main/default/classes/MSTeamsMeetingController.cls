@@ -59,6 +59,8 @@ public with sharing class MSTeamsMeetingController {
         }
         String contentPath = artifacts[0].Content_URL__c.trim();
         contentPath = contentPath.replaceFirst('^https://graph.microsoft.com/v1\\.0', '');
+        contentPath = contentPath.replaceFirst('^https://graph.microsoft.us/v1\\.0', '');
+        contentPath = contentPath.replaceFirst('^https://dod-graph.microsoft.us/v1\\.0', '');
         contentPath = contentPath.replaceFirst('^/v1\\.0', '');
         HttpResponse response;
         try {
