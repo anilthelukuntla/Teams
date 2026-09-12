@@ -15,6 +15,9 @@ public with sharing class MSTeamsAuthService {
             ConnectApi.OAuthCredentialAuthUrlInput input =
                 new ConnectApi.OAuthCredentialAuthUrlInput();
             input.externalCredential = EXTERNAL_CREDENTIAL;
+            input.principalType =
+                ConnectApi.CredentialPrincipalType.PerUserPrincipal;
+            input.principalName = 'MSTeamsPerUser';
 
             ConnectApi.OAuthCredentialAuthUrl result =
                 ConnectApi.NamedCredentials.getOAuthCredentialAuthUrl(input);

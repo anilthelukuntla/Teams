@@ -47,6 +47,7 @@ export default class MsTeamsMeetings extends LightningElement {
     errorMessage;
     connectionMessage;
     connection;
+    authorizationUrl;
     context;
     meetings = [];
     activeTab = 'upcoming';
@@ -118,6 +119,9 @@ export default class MsTeamsMeetings extends LightningElement {
         } else {
             this.connection = { connected: false };
             this.connectionMessage = this.reduceError(connectionResult.reason);
+        }
+        if (!this.connection?.connected) {
+            await this.prepareAuthorizationUrl();
         }
         this.isLoading = false;
     }
@@ -264,25 +268,29 @@ export default class MsTeamsMeetings extends LightningElement {
         return this.upcomingMeetings.slice(0, 2);
     }
 
-    async handleConnect() {
-        this.isConnecting = true;
-        this.connectionMessage = 'Opening Microsoft sign-in…';
-        const authWindow = window.open('', '_blank', 'noopener');
+    async prepareAuthorizationUrl() {
         try {
             const authorizationUrl = await getMicrosoftAuthorizationUrl();
-            if (authWindow) {
-                authWindow.location = authorizationUrl;
-            } else {
-                window.location.assign(authorizationUrl);
+            if (!authorizationUrl?.startsWith('https://')) {
+                throw new Error('Salesforce did not return a valid Microsoft authorization URL.');
             }
-            this.startConnectionPolling();
+            this.authorizationUrl = authorizationUrl;
         } catch (error) {
-            if (authWindow) {
-                authWindow.close();
-            }
+            this.authorizationUrl = undefined;
             this.connectionMessage = this.reduceError(error);
-            this.isConnecting = false;
         }
+    }
+
+    handleConnect() {
+        if (!this.authorizationUrl) {
+            this.connectionMessage = 'Preparing Microsoft sign-in. Please try again in a moment.';
+            this.prepareAuthorizationUrl();
+            return;
+        }
+        this.isConnecting = true;
+        this.connectionMessage = 'Opening Microsoft sign-in…';
+        window.open(this.authorizationUrl, '_blank', 'noopener,noreferrer');
+        this.startConnectionPolling();
     }
 
     startConnectionPolling() {
