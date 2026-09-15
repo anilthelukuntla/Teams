@@ -1,0 +1,66 @@
+<template>
+    <div class="console-shell">
+        <aside class="sidebar">
+            <button class="nav-item" data-section="home" onclick={selectSection}><lightning-icon icon-name="utility:home" size="xx-small"></lightning-icon>Setup Home</button>
+            <button class={connectionNavClass} data-section="connection" onclick={selectSection}><lightning-icon icon-name="utility:connected_apps" size="xx-small"></lightning-icon>Microsoft 365</button>
+            <button class={syncNavClass} data-section="sync" onclick={selectSection}><lightning-icon icon-name="utility:sync" size="xx-small"></lightning-icon>Sync Settings</button>
+            <button class="nav-item" disabled><lightning-icon icon-name="utility:einstein" size="xx-small"></lightning-icon>AI Settings</button>
+            <button class="nav-item" disabled><lightning-icon icon-name="utility:rules" size="xx-small"></lightning-icon>Matching Rules</button>
+            <button class="nav-item" disabled><lightning-icon icon-name="utility:lock" size="xx-small"></lightning-icon>Security</button>
+            <button class="nav-item" disabled><lightning-icon icon-name="utility:people" size="xx-small"></lightning-icon>User Access</button>
+        </aside>
+
+        <main class="main-panel">
+            <template lwc:if={isLoading}><lightning-spinner alternative-text="Loading Microsoft 365 setup"></lightning-spinner></template>
+            <header class="page-header">
+                <img src={teamsLogoUrl} alt="Microsoft Teams" />
+                <div><h1>Microsoft 365 Integration</h1><p>Manage your Microsoft 365 connection and integration settings.</p></div>
+                <span class={connectionClass}>{connectionLabel}</span>
+            </header>
+
+            <div class="tabs">
+                <button class={connectionNavClass} data-section="connection" onclick={selectSection}>Connection</button>
+                <button class={syncNavClass} data-section="sync" onclick={selectSection}>Sync Settings</button>
+                <button disabled>Meeting Defaults</button><button disabled>AI</button><button disabled>Objects</button>
+            </div>
+
+            <template lwc:if={isConnectionSection}>
+                <section class="content-grid">
+                    <article class="card tenant-card">
+                        <h2>Tenant Information</h2>
+                        <dl><dt>Tenant Name</dt><dd>{info.tenantName}</dd><dt>Tenant ID</dt><dd>{info.tenantId}</dd><dt>Connected Users</dt><dd>{info.connectedUsers}</dd><dt>Last Sync</dt><dd>{formattedLastSync}</dd></dl>
+                        <div class="connection-action">
+                            <div><strong>{connectedIdentity}</strong><p>{connection.message}</p></div>
+                            <template lwc:if={connection.connected}><button class="secondary" onclick={load}>Validate Connection</button></template>
+                            <template lwc:else><button class="primary" onclick={connect}>Connect Microsoft 365</button></template>
+                        </div>
+                    </article>
+                    <article class="card"><h2>Integration Status</h2>
+                        <div class="health-row"><span class="dot healthy-dot"></span><span>Calendar</span><strong>Teams Meetings</strong></div>
+                        <div class="health-row"><span class="dot healthy-dot"></span><span>Active subscriptions</span><strong>{info.activeSubscriptions}</strong></div>
+                        <div class="health-row"><span class="dot healthy-dot"></span><span>Recordings &amp; transcripts</span><strong>Configured</strong></div>
+                        <div class="health-row"><span class="dot warning-dot"></span><span>Failed syncs</span><strong>{info.failedSyncs}</strong></div>
+                    </article>
+                    <article class="card settings-card"><h2>Sync Settings</h2>
+                        <lightning-input type="toggle" name="syncMeetings" label="Automatically sync meetings" checked={info.syncMeetings} onchange={handleToggle}></lightning-input>
+                        <lightning-input type="toggle" name="syncAttendance" label="Sync attendance data" checked={info.syncAttendance} onchange={handleToggle}></lightning-input>
+                        <lightning-input type="toggle" name="syncRecordings" label="Sync recordings" checked={info.syncRecordings} onchange={handleToggle}></lightning-input>
+                        <lightning-input type="toggle" name="syncTranscripts" label="Sync transcripts" checked={info.syncTranscripts} onchange={handleToggle}></lightning-input>
+                    </article>
+                </section>
+            </template>
+
+            <template lwc:if={isSyncSection}>
+                <section class="card sync-page"><h2>Synchronization Settings</h2><p>Choose which Microsoft Teams data Salesforce synchronizes.</p>
+                    <lightning-input type="toggle" name="syncMeetings" label="Meetings" checked={info.syncMeetings} onchange={handleToggle}></lightning-input>
+                    <lightning-input type="toggle" name="syncAttendance" label="Attendance" checked={info.syncAttendance} onchange={handleToggle}></lightning-input>
+                    <lightning-input type="toggle" name="syncRecordings" label="Recordings" checked={info.syncRecordings} onchange={handleToggle}></lightning-input>
+                    <lightning-input type="toggle" name="syncTranscripts" label="Transcripts" checked={info.syncTranscripts} onchange={handleToggle}></lightning-input>
+                    <lightning-input type="number" label="Sync window (days)" min="1" max="365" value={info.syncWindowDays} onchange={handleWindow}></lightning-input>
+                </section>
+            </template>
+
+            <footer><lightning-button variant="brand" label="Save Settings" onclick={save} disabled={isSaving}></lightning-button></footer>
+        </main>
+    </div>
+</template>
