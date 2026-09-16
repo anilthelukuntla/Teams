@@ -71,6 +71,7 @@ public with sharing class MSTeamsMeetingService {
         return result;
     }
 
+    @TestVisible
     private static void applyRequestedMeetingOptions(
         MeetingResult result,
         Boolean recordAutomatically,
@@ -92,6 +93,13 @@ public with sharing class MSTeamsMeetingService {
             payload.put('allowTranscription', true);
         }
         if (meetingRequest != null) {
+            if (meetingRequest.allowRecording != null) {
+                payload.put('allowRecording', recordAutomatically == true || meetingRequest.allowRecording == true);
+                payload.put('recordAutomatically', recordAutomatically == true);
+            }
+            if (meetingRequest.allowTranscription != null) {
+                payload.put('allowTranscription', enableTranscription == true || meetingRequest.allowTranscription == true);
+            }
             payload.put(
                 'allowMeetingChat',
                 meetingRequest.allowMeetingChat == false

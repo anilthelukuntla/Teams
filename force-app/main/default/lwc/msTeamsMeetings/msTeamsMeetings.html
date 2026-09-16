@@ -34,20 +34,35 @@
         <template lwc:elseif={isDisconnected}>
             <div class="state-panel disconnected-panel">
                 <img src={teamsLogoUrl} alt="Microsoft Teams" class="state-logo" />
-                <h2>Connect your Microsoft 365 account</h2>
-                <p>Schedule Teams meetings, sync attendance, recordings and transcripts directly with Salesforce.</p>
-                <lightning-button label="Connect Microsoft 365" icon-name="utility:event" variant="brand" onclick={handleConnect} disabled={isConnecting}></lightning-button>
+                <div class="connection-intro">
+                    <h2>Connect your Microsoft 365 account</h2>
+                    <p>Schedule Teams meetings, sync attendance, recordings and transcripts directly with Salesforce.</p>
+                </div>
+                <div class="connection-actions">
+                    <button class="connection-button connection-button-primary" type="button" onclick={handleConnect} disabled={isConnecting}>
+                        <lightning-icon icon-name="utility:event" size="x-small" variant="inverse"></lightning-icon>
+                        <span>Connect Microsoft 365</span>
+                    </button>
+                    <button class="connection-button connection-button-secondary" type="button" onclick={handlePreview} aria-describedby="preview-description">
+                        <lightning-icon icon-name="utility:preview" size="x-small"></lightning-icon>
+                        <span>Preview as current user</span>
+                    </button>
+                </div>
+                <p class="preview-description" id="preview-description">Explore the UI as your Salesforce user.<br />Preview does not create meetings.</p>
                 <div class="secure-copy">
                     <lightning-icon icon-name="utility:lock" size="xx-small"></lightning-icon>
                     <span>Secure Microsoft OAuth connection</span>
                 </div>
                 <template lwc:if={connectionMessage}>
-                    <p class="connection-message">{connectionMessage}</p>
+                    <p class="connection-message" role="status">{connectionMessage}</p>
                 </template>
             </div>
         </template>
 
         <template lwc:else>
+            <template lwc:if={testMode}>
+                <div class="preview-banner" role="status"><lightning-icon icon-name="utility:preview" size="x-small"></lightning-icon><span><strong>UI preview</strong> · Viewing as {connectionEmail}. Meeting creation is disabled.</span></div>
+            </template>
             <div class="workspace-grid">
                 <main class="main-column">
                     <header class="hero-card">
@@ -55,19 +70,20 @@
                             <div class="brand-block">
                                 <img src={teamsLogoUrl} alt="Microsoft Teams" class="teams-logo" />
                                 <div>
+                                    <div class="record-eyebrow"><span>{objectLabel}</span><span aria-hidden="true">/</span><strong title={recordName}>{recordName}</strong></div>
                                     <h1>Microsoft Teams Meetings</h1>
-                                    <p>Manage customer meetings, attendance, and conversation intelligence — all in Salesforce.</p>
+                                    <p>Meetings, attendees, and follow-ups for this record.</p>
                                 </div>
                             </div>
                             <div class="connection-block">
-                                <span class="connected-label"><span class="connection-dot"></span>Connected</span>
+                                <span class="connected-label"><span class="connection-dot"></span>{connectionLabel}</span>
                                 <span class="connection-email">{connectionEmail}</span>
                             </div>
                         </div>
 
                         <div class="action-row">
                             <lightning-button label="Schedule Meeting" icon-name="utility:add" variant="brand" onclick={handleSchedule}></lightning-button>
-                            <lightning-button label="Sync Meetings" icon-name="utility:sync" onclick={handleSync}></lightning-button>
+                            <lightning-button label="Refresh Meetings" icon-name="utility:sync" onclick={handleSync}></lightning-button>
                             <lightning-button label="Open in Outlook" icon-name="utility:new_window" onclick={handleOpenOutlook}></lightning-button>
                             <lightning-button class="settings-button" label="Settings" icon-name="utility:settings" onclick={handleSettings}></lightning-button>
                         </div>
@@ -83,31 +99,35 @@
                             </article>
                             <article class="stat-card">
                                 <span class="stat-icon recording-icon"><lightning-icon icon-name="utility:video" size="small"></lightning-icon></span>
-                                <div><strong>{recordedCount}</strong><span>Recorded Meetings</span></div>
+                                <div><strong>{recordedCount}</strong><span>Recording Requested</span></div>
                             </article>
                             <article class="stat-card">
                                 <span class="stat-icon action-icon"><lightning-icon icon-name="utility:task" size="small"></lightning-icon></span>
-                                <div><strong>0</strong><span>Action Items</span></div>
+                                <div><strong>{totalCount}</strong><span>Total Meetings</span></div>
                             </article>
                         </div>
                     </header>
 
                     <section class="meetings-card">
                         <nav class="tabs" aria-label="Meeting views">
-                            <button class={upcomingTabClass} data-tab="upcoming" onclick={handleTab}>Upcoming Meetings</button>
-                            <button class={pastTabClass} data-tab="past" onclick={handleTab}>Past Meetings</button>
-                            <button class={recordingsTabClass} data-tab="recordings" onclick={handleTab}>Recordings</button>
+                            <button class={upcomingTabClass} aria-pressed={isUpcomingView} data-tab="upcoming" onclick={handleTab}>Upcoming Meetings</button>
+                            <button class={pastTabClass} aria-pressed={isPastView} data-tab="past" onclick={handleTab}>Past Meetings</button>
+                            <button class={recordingsTabClass} aria-pressed={isRecordingsView} data-tab="recordings" onclick={handleTab}>Recording Requests</button>
                             <button class="tab-button future-tab" disabled title="Planned improvement">Insights</button>
                         </nav>
 
                         <div class="toolbar">
                             <div class="search-box">
-                                <lightning-input type="search" variant="label-hidden" label="Search meetings" placeholder="Search meetings…" onchange={handleSearch}></lightning-input>
+                                <lightning-input type="search" variant="label-hidden" label="Search meetings" placeholder="Search meetings…" value={searchTerm} onchange={handleSearch}></lightning-input>
                             </div>
                             <lightning-combobox class="status-filter" variant="label-hidden" label="Status" value={statusFilter} options={statusOptions} onchange={handleStatusFilter}></lightning-combobox>
                             <lightning-combobox class="sort-filter" variant="label-hidden" label="Sort meetings" value={sortOrder} options={sortOptions} onchange={handleSort}></lightning-combobox>
                         </div>
 
+                        <div class="results-summary">
+                            <span aria-live="polite">{resultsLabel}</span>
+                            <template lwc:if={hasActiveFilters}><button class="text-action" onclick={handleClearFilters}>Clear filters</button></template>
+                        </div>
                         <template lwc:if={hasVisibleMeetings}>
                             <div class="meeting-list">
                                 <template for:each={visibleMeetings} for:item="meeting">
@@ -117,14 +137,14 @@
                                                 <img src={teamsLogoUrl} alt="" class="meeting-logo" />
                                                 <div class="meeting-primary">
                                                     <div class="title-line">
-                                                        <h2>{meeting.subject}</h2>
+                                                        <h2 title={meeting.subject}>{meeting.subject}</h2>
                                                         <span class={meeting.statusClass}>{meeting.status}</span>
                                                     </div>
                                                     <div class="meeting-time">
                                                         <lightning-icon icon-name="utility:event" size="xx-small"></lightning-icon>
                                                         <span>{meeting.dateLabel}</span><span class="separator">•</span>
                                                         <lightning-icon icon-name="utility:clock" size="xx-small"></lightning-icon>
-                                                        <span>{meeting.timeLabel}</span>
+                                                        <span>{meeting.timeLabel}</span><template lwc:if={meeting.timeZone}><span class="meeting-timezone">{meeting.timeZone}</span></template>
                                                     </div>
                                                     <div class="meeting-meta">
                                                         <div class="avatar-stack" aria-label={meeting.attendeeAriaLabel}>
@@ -138,7 +158,7 @@
                                                         <span class={meeting.recordingClass}><lightning-icon icon-name="utility:video" size="xx-small"></lightning-icon>{meeting.recordingLabel}</span>
                                                         <span class={meeting.transcriptClass}><lightning-icon icon-name="utility:note" size="xx-small"></lightning-icon>{meeting.transcriptLabel}</span>
                                                     </div>
-                                                    <p class="description">{meeting.description}</p>
+                                                    <p class="description" title={meeting.description}>{meeting.description}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -158,7 +178,7 @@
 
                                         <aside class="record-context">
                                             <span class="record-icon"><lightning-icon icon-name="standard:record" size="small"></lightning-icon></span>
-                                            <div><strong>{recordName}</strong><span>{objectLabel}</span></div>
+                                            <div><strong title={recordName}>{recordName}</strong><span>{objectLabel}</span></div>
                                         </aside>
                                     </article>
                                 </template>
@@ -179,7 +199,7 @@
 
                 <aside class="side-column">
                     <section class="side-card calendar-card">
-                        <div class="side-heading"><h2>My Calendar</h2><lightning-button-icon icon-name="utility:chevronleft" alternative-text="Previous month" onclick={previousMonth}></lightning-button-icon><lightning-button-icon icon-name="utility:chevronright" alternative-text="Next month" onclick={nextMonth}></lightning-button-icon></div>
+                        <div class="side-heading"><h2>Record Calendar</h2><lightning-button-icon icon-name="utility:chevronleft" alternative-text="Previous month" onclick={previousMonth}></lightning-button-icon><lightning-button-icon icon-name="utility:chevronright" alternative-text="Next month" onclick={nextMonth}></lightning-button-icon></div>
                         <h3>{calendarMonthLabel}</h3>
                         <div class="weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
                         <div class="calendar-grid">
@@ -188,9 +208,10 @@
                             </template>
                         </div>
                         <div class="today-heading"><h3>Upcoming</h3><button onclick={handleViewAll}>View All</button></div>
+                        <template lwc:if={hasNoUpcomingMeetings}><p class="calendar-empty">No upcoming meetings for this record.</p></template>
                         <template for:each={calendarMeetings} for:item="meeting">
                             <button key={meeting.id} class="calendar-meeting" data-id={meeting.id} onclick={handleDetails}>
-                                <span class="calendar-dot"></span><span><strong>{meeting.subject}</strong><small>{meeting.shortTimeLabel}</small></span>
+                                <span class="calendar-dot"></span><span><strong>{meeting.subject}</strong><small>{meeting.dateLabel}</small><small>{meeting.shortTimeLabel}</small></span>
                             </button>
                         </template>
                     </section>
@@ -198,7 +219,7 @@
                     <section class="side-card quick-actions">
                         <h2>Quick Actions</h2>
                         <button onclick={handleSchedule}><lightning-icon icon-name="utility:event" size="x-small"></lightning-icon><span>Schedule Meeting</span><lightning-icon icon-name="utility:chevronright" size="xx-small"></lightning-icon></button>
-                        <button onclick={handleSync}><lightning-icon icon-name="utility:sync" size="x-small"></lightning-icon><span>Sync Meetings</span><lightning-icon icon-name="utility:chevronright" size="xx-small"></lightning-icon></button>
+                        <button onclick={handleSync}><lightning-icon icon-name="utility:sync" size="x-small"></lightning-icon><span>Refresh Meetings</span><lightning-icon icon-name="utility:chevronright" size="xx-small"></lightning-icon></button>
                         <button onclick={handleOpenOutlook}><lightning-icon icon-name="utility:new_window" size="x-small"></lightning-icon><span>Open in Outlook</span><lightning-icon icon-name="utility:chevronright" size="xx-small"></lightning-icon></button>
                     </section>
                 </aside>
@@ -207,6 +228,7 @@
     </section>
     <template lwc:if={showScheduleModal}>
         <c-ms-teams-meeting-form
+            test-mode={testMode}
             record-id={recordId}
             context={context}
             onclose={handleScheduleClose}

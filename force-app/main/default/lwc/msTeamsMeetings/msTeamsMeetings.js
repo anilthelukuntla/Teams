@@ -6,6 +6,9 @@ import getMeetings from '@salesforce/apex/MSTeamsMeetingController.getMeetings';
 import getMicrosoftConnectionStatus from '@salesforce/apex/MSTeamsMeetingController.getMicrosoftConnectionStatus';
 import getMicrosoftAuthorizationUrl from '@salesforce/apex/MSTeamsMeetingController.getMicrosoftAuthorizationUrl';
 import TEAMS_LOGO from '@salesforce/resourceUrl/MS_Teams_Logo';
+import USER_ID from '@salesforce/user/Id';
+import USER_EMAIL from '@salesforce/schema/User.Email';
+import { getRecord, getFieldValue } from 'lightning/uiRecordApi';
 
 const STATUS_OPTIONS = [
     { label: 'All Status', value: 'all' },
@@ -18,6 +21,10 @@ const STATUS_OPTIONS = [
 ];
 
 export default class MsTeamsMeetings extends LightningElement {
+    @api testMode = false;
+    @wire(getRecord, { recordId: USER_ID, fields: [USER_EMAIL] })
+    currentUser;
+
     _recordId;
     componentConnected = false;
     lastLoadedRecordId;
@@ -100,7 +107,7 @@ export default class MsTeamsMeetings extends LightningElement {
             await Promise.allSettled([
                 getContext({ recordId: requestedRecordId }),
                 getMeetings({ recordId: requestedRecordId }),
-                getMicrosoftConnectionStatus()
+                this.testMode ? Promise.resolve({ connected: false }) : getMicrosoftConnectionStatus()
             ]);
 
         if (contextResult.status === 'rejected' || meetingsResult.status === 'rejected') {
@@ -120,7 +127,7 @@ export default class MsTeamsMeetings extends LightningElement {
             this.connection = { connected: false };
             this.connectionMessage = this.reduceError(connectionResult.reason);
         }
-        if (!this.connection?.connected) {
+        if (!this.testMode && !this.connection?.connected) {
             await this.prepareAuthorizationUrl();
         }
         this.isLoading = false;
@@ -137,7 +144,7 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     get isDisconnected() {
-        return this.connection?.connected !== true;
+        return !this.testMode && this.connection?.connected !== true;
     }
 
     get isMissingRecordContext() {
@@ -145,7 +152,14 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     get connectionEmail() {
+        if (this.testMode) {
+            return getFieldValue(this.currentUser?.data, USER_EMAIL) || 'Current Salesforce user';
+        }
         return this.connection?.email || this.connection?.userPrincipalName || '';
+    }
+
+    get connectionLabel() {
+        return this.testMode ? 'Test preview' : 'Connected';
     }
 
     get recordName() {
@@ -174,6 +188,22 @@ export default class MsTeamsMeetings extends LightningElement {
 
     get recordedCount() {
         return this.meetings.filter((meeting) => meeting.recordingRequested).length;
+    }
+
+    get totalCount() { return this.meetings.length; }
+    get isUpcomingView() { return this.activeTab === 'upcoming'; }
+    get isPastView() { return this.activeTab === 'past'; }
+    get isRecordingsView() { return this.activeTab === 'recordings'; }
+    get hasActiveFilters() { return Boolean(this.searchTerm) || this.statusFilter !== 'all'; }
+    get hasNoUpcomingMeetings() { return this.upcomingCount === 0; }
+    get resultsLabel() {
+        const count = this.visibleMeetings.length;
+        return `${count} ${count === 1 ? 'meeting' : 'meetings'} · ${this.recordName}`;
+    }
+
+    handleClearFilters() {
+        this.searchTerm = '';
+        this.statusFilter = 'all';
     }
 
     get visibleMeetings() {
@@ -265,7 +295,7 @@ export default class MsTeamsMeetings extends LightningElement {
     }
 
     get calendarMeetings() {
-        return this.upcomingMeetings.slice(0, 2);
+        return [...this.upcomingMeetings].sort((a, b) => a.sortTimestamp - b.sortTimestamp).slice(0, 2);
     }
 
     async prepareAuthorizationUrl() {
@@ -279,6 +309,12 @@ export default class MsTeamsMeetings extends LightningElement {
             this.authorizationUrl = undefined;
             this.connectionMessage = this.reduceError(error);
         }
+    }
+
+    handlePreview() {
+        this.stopConnectionPolling();
+        this.isConnecting = false;
+        this.testMode = true;
     }
 
     handleConnect() {
@@ -403,6 +439,7 @@ export default class MsTeamsMeetings extends LightningElement {
 
     handleViewAll() {
         this.activeTab = 'upcoming';
+        this.handleClearFilters();
     }
 
     previousMonth() {

@@ -8,6 +8,7 @@ const pad = (value) => String(value).padStart(2, '0');
 export default class MsTeamsMeetingForm extends LightningElement {
     @api recordId;
     @api context;
+    @api testMode = false;
     teamsLogoUrl = TEAMS_LOGO;
     step = 1;
     saving = false;
@@ -21,7 +22,7 @@ export default class MsTeamsMeetingForm extends LightningElement {
         subject: '', description: '', meetingType: 'Customer Meeting', date: '', startTime: '15:00',
         duration: '60', microsoftTimeZone: 'India Standard Time', reminderMinutesBeforeStart: '15',
         allowNewTimeProposals: true, personalMessage: '', allowMeetingChat: true,
-        allowScreenSharing: true, recordAutomatically: true, enableTranscription: true,
+        allowScreenSharing: true, allowRecording: true, allowTranscription: true, recordAutomatically: true, enableTranscription: true,
         lobbyRequired: false, meetingAccess: 'Invited People', teamsChannelId: '', location: ''
     };
 
@@ -69,6 +70,10 @@ export default class MsTeamsMeetingForm extends LightningElement {
     get reminderOptions() { return [{label:'No reminder',value:'-1'},{label:'5 minutes before',value:'5'},{label:'15 minutes before',value:'15'},{label:'30 minutes before',value:'30'},{label:'1 hour before',value:'60'}]; }
     get accessOptions() { return [{label:'Only invited people can join (Recommended)',value:'Invited People'},{label:'People in my organization can join',value:'Organization'},{label:'Anyone with the link can join',value:'Anyone'},{label:'My organization and trusted organizations',value:'Organization and Trusted'}]; }
 
+    get accessChoices() {
+        return this.accessOptions.map((option) => ({ ...option, checked: this.form.meetingAccess === option.value }));
+    }
+
     stepClass(number) {
         return `step ${this.step === number ? 'current' : ''} ${this.step > number || this.result ? 'complete' : ''}`;
     }
@@ -78,7 +83,14 @@ export default class MsTeamsMeetingForm extends LightningElement {
         this.errorMessage = undefined;
     }
     handleToggle(event) {
-        this.form = { ...this.form, [event.target.dataset.field]: event.target.checked };
+        const field = event.target.dataset.field;
+        const checked = event.target.checked;
+        const changes = { [field]: checked };
+        if (field === 'allowRecording' && !checked) changes.recordAutomatically = false;
+        if (field === 'recordAutomatically' && checked) changes.allowRecording = true;
+        if (field === 'allowTranscription' && !checked) changes.enableTranscription = false;
+        if (field === 'enableTranscription' && checked) changes.allowTranscription = true;
+        this.form = { ...this.form, ...changes };
     }
     close() { this.dispatchEvent(new CustomEvent('close')); }
     back() { this.step = Math.max(1, this.step - 1); this.errorMessage = undefined; }
@@ -132,6 +144,10 @@ export default class MsTeamsMeetingForm extends LightningElement {
         this.selectedAttendees = this.selectedAttendees.filter((item) => item.key !== event.currentTarget.dataset.id);
     }
     async schedule() {
+        if (this.testMode) {
+            this.errorMessage = 'This is a UI test preview. Disable test mode and connect Microsoft 365 to schedule a real meeting.';
+            return;
+        }
         this.saving = true;
         this.errorMessage = undefined;
         try {
@@ -146,6 +162,7 @@ export default class MsTeamsMeetingForm extends LightningElement {
                 attendeeEmails: this.selectedAttendees.map((item) => item.email), startDateTime: start,
                 endDateTime: end, microsoftTimeZone: this.form.microsoftTimeZone,
                 recordAutomatically: this.form.recordAutomatically, enableTranscription: this.form.enableTranscription,
+                allowRecording: this.form.allowRecording, allowTranscription: this.form.allowTranscription,
                 meetingType: this.form.meetingType, allowMeetingChat: this.form.allowMeetingChat,
                 allowScreenSharing: this.form.allowScreenSharing, lobbyRequired: this.form.lobbyRequired,
                 meetingAccess: this.form.meetingAccess, teamsChannelId: this.form.teamsChannelId,

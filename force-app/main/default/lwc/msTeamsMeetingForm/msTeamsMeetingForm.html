@@ -32,7 +32,7 @@
                         </div>
                         <lightning-textarea data-field="description" label="Description / Agenda" value={form.description} maxlength="500" onchange={handleField}></lightning-textarea>
                         <div class="section-divider"></div>
-                        <div class="section-title compact"><span><lightning-icon icon-name="utility:event" size="x-small"></lightning-icon></span><div><h2>Date &amp; Time</h2><p>Choose the date, time and duration</p></div></div>
+                        <div class="section-title compact"><span><lightning-icon icon-name="utility:event" size="small" variant="inverse"></lightning-icon></span><div><h2>Date &amp; Time</h2><p>Choose the date, time and duration</p></div></div>
                         <div class="date-grid">
                             <lightning-input data-required="true" data-field="date" type="date" label="Date" required value={form.date} onchange={handleField}></lightning-input>
                             <lightning-input data-required="true" data-field="startTime" type="time" label="Start time" required value={form.startTime} onchange={handleField}></lightning-input>
@@ -48,7 +48,7 @@
                         <div class="attendee-tabs"><button class={sfTabClass} data-tab="salesforce" onclick={chooseTab}>Add from Salesforce</button><button class={emailTabClass} data-tab="email" onclick={chooseTab}>Add by Email</button><button class={suggestedTabClass} data-tab="suggested" onclick={chooseTab}>Suggested Attendees</button></div>
                         <template lwc:if={attendeeTab}>
                             <template lwc:if={hasSearchResults}>
-                                <div class="search-results"><template for:each={searchResults} for:item="person"><button key={person.key} data-id={person.key} onclick={addSearchResult}><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.title} · {person.email}</small></span><b>＋ Add</b></button></template></div>
+                                <div class="search-results" role="region" aria-label="Participant search results" tabindex="0"><template for:each={searchResults} for:item="person"><button key={person.key} data-id={person.key} onclick={addSearchResult}><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.title} · {person.email}</small></span><b>＋ Add</b></button></template></div>
                             </template>
                         </template>
                         <template lwc:if={isStep2}>
@@ -58,17 +58,48 @@
                             </div>
                         </template>
                         <h3 class="selected-heading">Selected Attendees ({selectedCount})</h3>
-                        <div class="selected-list"><template for:each={selectedAttendees} for:item="person"><div key={person.key} class="selected-person"><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.email}</small></span><button data-id={person.key} onclick={removeAttendee} aria-label="Remove attendee">×</button></div></template></div>
+                        <div class="selected-list" role="region" aria-label="Selected participants" tabindex="0"><template for:each={selectedAttendees} for:item="person"><div key={person.key} class="selected-person"><span class="avatar">{person.initials}</span><span><strong>{person.displayName}</strong><small>{person.email}</small></span><button data-id={person.key} onclick={removeAttendee} aria-label="Remove attendee">×</button></div></template></div>
                         <lightning-input type="checkbox" label="Send calendar invite to all attendees" checked disabled></lightning-input>
                         <lightning-textarea data-field="personalMessage" label="Add a personal message (optional)" value={form.personalMessage} maxlength="500" onchange={handleField}></lightning-textarea>
                     </template>
 
                     <template lwc:if={isStep3}>
-                        <div class="section-title"><span>3</span><div><h2>Teams Options</h2><p>Configure meeting options, recording and access</p></div></div>
-                        <section class="option-card"><h3><lightning-icon icon-name="utility:video" size="small"></lightning-icon> Meeting Options</h3><lightning-input data-field="allowMeetingChat" type="toggle" label="Enable meeting chat" checked={form.allowMeetingChat} onchange={handleToggle}></lightning-input><lightning-input data-field="allowScreenSharing" type="toggle" label="Allow screen sharing" checked={form.allowScreenSharing} onchange={handleToggle}></lightning-input><lightning-input data-field="lobbyRequired" type="toggle" label="Require lobby for external attendees" checked={form.lobbyRequired} onchange={handleToggle}></lightning-input></section>
-                        <section class="option-card"><h3><lightning-icon icon-name="utility:record" size="small"></lightning-icon> Recording &amp; Transcript</h3><lightning-input data-field="recordAutomatically" type="checkbox" label="Automatically record the meeting" checked={form.recordAutomatically} onchange={handleToggle}></lightning-input><lightning-input data-field="enableTranscription" type="checkbox" label="Generate transcript (AI-powered)" checked={form.enableTranscription} onchange={handleToggle}></lightning-input><div class="ai-note">✦ AI can use the transcript for summaries, action items and key insights when those improvements are enabled.</div></section>
-                        <section class="option-card"><h3><lightning-icon icon-name="utility:lock" size="small"></lightning-icon> Meeting Access</h3><lightning-radio-group data-field="meetingAccess" label="Who can bypass the lobby?" options={accessOptions} value={form.meetingAccess} type="radio" onchange={handleField}></lightning-radio-group></section>
-                        <section class="option-card"><h3>Additional Settings</h3><div class="two-col"><lightning-input data-field="teamsChannelId" label="Teams channel (optional)" placeholder="Channel ID" value={form.teamsChannelId} onchange={handleField}></lightning-input><lightning-input data-field="location" label="Location (optional)" placeholder="Microsoft Teams Meeting (Online)" value={form.location} onchange={handleField}></lightning-input></div></section>
+                        <div class="teams-options-screen">
+                            <div class="teams-options-heading"><span class="options-heading-icon"><lightning-icon icon-name="utility:settings" size="medium"></lightning-icon></span><span class="options-step-number">3</span><div><h2>Teams Options</h2><p>Configure meeting options, recording, and additional settings</p></div></div>
+                            <section class="teams-design-card">
+                                <img src={teamsLogoUrl} class="teams-card-logo" alt="" />
+                                <div class="teams-card-content"><h3>Meeting Options</h3>
+<div class="teams-option-row"><label class="teams-switch-label"><input type="checkbox" role="switch" data-field="allowMeetingChat" checked={form.allowMeetingChat} onchange={handleToggle} /><span class="teams-switch" aria-hidden="true"></span><span>Enable meeting chat</span></label><lightning-helptext content="Allow attendees to chat during the meeting."></lightning-helptext></div>
+<div class="teams-option-row"><label class="teams-switch-label"><input type="checkbox" role="switch" data-field="allowScreenSharing" checked={form.allowScreenSharing} onchange={handleToggle} /><span class="teams-switch" aria-hidden="true"></span><span>Allow screen sharing</span></label><lightning-helptext content="Allow attendees to present and share their screens."></lightning-helptext></div>
+<div class="teams-option-row"><label class="teams-switch-label"><input type="checkbox" role="switch" data-field="allowRecording" checked={form.allowRecording} onchange={handleToggle} /><span class="teams-switch" aria-hidden="true"></span><span>Allow attendees to record (if allowed by policy)</span></label><lightning-helptext content="Enable recording for this meeting. Who can start a recording still depends on Microsoft Teams roles and your organization’s policies."></lightning-helptext></div>
+<div class="teams-option-row"><label class="teams-switch-label"><input type="checkbox" role="switch" data-field="allowTranscription" checked={form.allowTranscription} onchange={handleToggle} /><span class="teams-switch" aria-hidden="true"></span><span>Enable live transcription (for accessible meetings)</span></label><lightning-helptext content="Allow live transcription in Teams, subject to your organization’s policies."></lightning-helptext></div>
+<div class="teams-option-row"><label class="teams-switch-label"><input type="checkbox" role="switch" data-field="lobbyRequired" checked={form.lobbyRequired} onchange={handleToggle} /><span class="teams-switch" aria-hidden="true"></span><span>Require lobby for external attendees</span></label><lightning-helptext content="When enabled, only the organizer bypasses the lobby. Otherwise, the access selection below applies."></lightning-helptext></div>
+                                    <div class="teams-option-row auto-end-row"><label class="teams-switch-label"><input type="checkbox" role="switch" disabled /><span class="teams-switch" aria-hidden="true"></span><span>End meeting automatically after</span></label><select aria-label="Automatically end meeting after" disabled><option>2 hours</option></select><lightning-helptext content="Automatic meeting ending is not available in this integration. The scheduled end time does not disconnect participants."></lightning-helptext></div>
+                                    <p class="option-availability">Automatic meeting ending is not available.</p>
+                                </div>
+                            </section>
+                            <section class="teams-design-card">
+                                <lightning-icon class="options-recording-icon" icon-name="utility:video" size="small"></lightning-icon>
+                                <div class="teams-card-content"><h3>Recording &amp; Transcript</h3>
+                                    <label class="teams-check-row"><input type="checkbox" data-field="recordAutomatically" checked={form.recordAutomatically} onchange={handleToggle} /><span>Automatically record the meeting</span></label>
+                                    <label class="teams-check-row"><input type="checkbox" data-field="enableTranscription" checked={form.enableTranscription} onchange={handleToggle} /><span>Generate transcript (AI-powered)</span></label>
+                                    <div class="teams-ai-note"><lightning-icon icon-name="utility:sparkles" size="small"></lightning-icon><span>Transcripts can support AI summaries, action items and key insights when meeting intelligence is enabled.</span></div>
+                                </div>
+                            </section>
+                            <section class="teams-design-card">
+                                <lightning-icon class="options-blue-icon" icon-name="utility:lock" size="small"></lightning-icon>
+                                <fieldset class="teams-card-content access-fieldset"><legend>Meeting Access</legend>
+                                    <template for:each={accessChoices} for:item="choice"><label key={choice.value} class="teams-radio-row"><input type="radio" name="meeting-access" data-field="meetingAccess" value={choice.value} checked={choice.checked} onchange={handleField} /><span>{choice.label}</span></label></template>
+                                </fieldset>
+                            </section>
+                            <section class="teams-design-card">
+                                <lightning-icon class="options-blue-icon" icon-name="utility:settings" size="small"></lightning-icon>
+                                <div class="teams-card-content"><h3>Additional Settings</h3>
+                                    <label class="teams-setting-row"><span>Add a Teams channel (optional)</span><input type="text" data-field="teamsChannelId" placeholder="Enter a channel ID" value={form.teamsChannelId} onchange={handleField} /></label>
+                                    <label class="teams-setting-row"><span>Add location (optional)</span><span class="teams-location-field"><img src={teamsLogoUrl} alt="" /><input type="text" data-field="location" placeholder="Microsoft Teams Meeting (Online)" value={form.location} onchange={handleField} /></span></label>
+                                </div>
+                            </section>
+                        </div>
                     </template>
 
                     <template lwc:if={isStep4}>

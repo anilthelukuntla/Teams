@@ -7,6 +7,8 @@ public class MSTeamsMeetingRequest {
     @AuraEnabled public String startDateTime { get; set; }
     @AuraEnabled public String endDateTime { get; set; }
     @AuraEnabled public String microsoftTimeZone { get; set; }
+    @AuraEnabled public Boolean allowRecording { get; set; }
+    @AuraEnabled public Boolean allowTranscription { get; set; }
     @AuraEnabled public Boolean recordAutomatically { get; set; }
     @AuraEnabled public Boolean enableTranscription { get; set; }
     @AuraEnabled public String meetingType { get; set; }

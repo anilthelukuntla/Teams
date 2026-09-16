@@ -7,4 +7,9 @@
     <targets>
         <target>lightning__RecordPage</target>
     </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property name="testMode" type="Boolean" default="false" label="Enable UI test mode" description="Preview the meeting workspace as the current Salesforce user without Microsoft sign-in. Meeting creation is disabled." />
+        </targetConfig>
+    </targetConfigs>
 </LightningComponentBundle>
